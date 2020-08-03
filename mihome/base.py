@@ -1,12 +1,16 @@
 from Crypto.Cipher import AES
 from time import sleep
+from interruptingcow import timeout
 import binascii
 import socket
 import json
 import os
 import struct
 import datetime
+import pprint
+import ast
 
+debug=False
 XIAOMI_PASSWORD = os.environ.get('XIAOMI_PASSWORD')
 
 IV = bytearray([
@@ -49,7 +53,7 @@ class XiaomiConnection(object):
         port = port or self.multicast_port
         if type(data) is dict:
             data = json.dumps(data)
-        print 'Sent to %s: %s' % (ip, data)
+        if debug: print 'Sent to %s: %s' % (ip, data)
         return self.socket.sendto(
             data.encode("utf-8"), (ip, port)
         )
@@ -64,7 +68,7 @@ class XiaomiConnection(object):
                 for key, value in kwargs.items()
             ]
             if all(conditions):
-                print 'Received: %s' % payload
+                if debug: print 'Received: %s' % payload
                 return payload
 
     def stream(self, **kwargs):
@@ -82,6 +86,51 @@ class XiaomiConnection(object):
     def whois(self):
         self.send({'cmd': 'whois'}, port=self.SERVER_PORT)
         return self.receive(cmd='iam')
+
+
+    def list_gateways(self):
+        self.send({'cmd': 'whois'}, port=self.SERVER_PORT)
+        l_gateways = self.receive_gateways(cmd='heartbeat')
+        #pprint.pprint(l_gateways)
+        return l_gateways
+#        return self.receive(cmd='iam')
+
+    def receive_gateways(self, **kwargs):
+        n=0
+        d_gateways={}
+        l_gateways=[]
+        try:
+            with timeout(10, exception=RuntimeError):
+            # perform a potentially very slow operation
+                while n < 10:
+                    data, addr = self.socket.recvfrom(self.SOCKET_BUFSIZE)
+                    payload = json.loads(data.decode("utf-8"))
+                    conditions = [
+                        payload[key] == value
+                         for key, value in [('cmd', 'heartbeat')]
+#                        for key, value in kwargs.items()
+                    ]
+                    conditions2 = [
+                        payload[key] == value
+                         for key, value in [('cmd', 'iam')]
+                    ]
+                    
+#                    if all(conditions) or all(conditions2):
+                    if all(conditions):
+                        if debug: print 'Received: %s' % payload
+                        n+=1
+                        sid=payload[u'sid']
+                        if sid not in d_gateways.keys():
+                            d_gateways[sid] = 1
+                            l_gateways.append( payload )
+                    #print conditions
+
+        except RuntimeError:
+            if debug: print "Stopping after 10 seconds"
+            pass
+        return l_gateways
+    
+    
 
 
 class BaseXiaomiDevice(object):

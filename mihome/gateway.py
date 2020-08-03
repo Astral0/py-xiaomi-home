@@ -11,7 +11,16 @@ DEVICE_CLASS_MAP = {
     'switch': devices.Switch,
     'motion': devices.MotionSensor,
     'magnet': devices.DoorMagnet,
-    'plug': devices.Plug
+    'plug': devices.Plug,
+    'weather': devices.Weather,
+    'sensor_wleak.aq1' : devices.Weather,
+    'weather.v1': devices.Weather,
+    'sensor_magnet.aq2' : devices.DoorMagnet,
+    'sensor_ht': devices.DoorMagnet,
+    'smoke': devices.Smoke,
+    '86sw2': devices.Switch,
+    'sensor_motion.aq2': devices.MotionSensor,
+    'vibration' : devices.MotionSensor,
 }
 
 
@@ -97,3 +106,14 @@ class Gateway(BaseXiaomiDevice):
                 device_class(self.connection, self, device['sid'], device['short_id'])
             )
 
+    def list_subdevices(self):
+
+        for device in self.get_subdevices():
+            #print ">>>"
+            #pprint.pprint(device)
+            #print device['model']
+            #print "<<<"
+            device_class = DEVICE_CLASS_MAP[device['model']]
+            self.connected_devices[device['model']].append(
+                device_class(self.connection, self, device['sid'], device['short_id'])
+            )

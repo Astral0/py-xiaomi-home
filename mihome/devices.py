@@ -24,3 +24,14 @@ class Plug(BaseXiaomiDevice):
 class Cube(BaseXiaomiDevice):
 
     model = 'cube'
+
+
+class Weather(BaseXiaomiDevice):
+
+    model = 'weather'
+
+
+class Smoke(BaseXiaomiDevice):
+
+    model = 'smoke'
+
