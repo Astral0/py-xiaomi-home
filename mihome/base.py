@@ -11,6 +11,7 @@ import pprint
 import ast
 
 debug=False
+time_out=10   # seconds
 
 XIAOMI_PASSWORD = os.environ.get('XIAOMI_PASSWORD')
 
@@ -60,20 +61,32 @@ class XiaomiConnection(object):
         )
 
     def receive(self, **kwargs):
-        while True:
-            data, addr = self.socket.recvfrom(self.SOCKET_BUFSIZE)
-            payload = json.loads(data.decode("utf-8"))
-            # print payload
-            conditions = [
-                payload[key] == value
-                for key, value in kwargs.items()
-            ]
-            if all(conditions):
-                if debug: print 'Received: %s' % payload
-                return payload
+        #while True:
+        try:
+            with timeout(time_out, exception=RuntimeError):
+            # perform a potentially very slow operation
+
+                data, addr = self.socket.recvfrom(self.SOCKET_BUFSIZE)
+                payload = json.loads(data.decode("utf-8"))
+                # print payload
+                conditions = [
+                    payload[key] == value
+                    for key, value in kwargs.items()
+                ]
+                if all(conditions):
+                    if debug: print 'Received: %s' % payload
+                    return payload
+
+        except RuntimeError:
+            if debug: print "Stopping receive after %s seconds" % time_out
+            return
+
 
     def stream(self, **kwargs):
-        while True:
+        #while True:
+        try:
+          with timeout(time_out, exception=RuntimeError):
+            # perform a potentially very slow operation
             data, addr = self.socket.recvfrom(self.SOCKET_BUFSIZE)
             payload = json.loads(data.decode("utf-8"))
             # print payload
@@ -83,6 +96,9 @@ class XiaomiConnection(object):
             ]
             if all(conditions):
                 yield payload
+        except RuntimeError:
+            if debug: print "Stopping stream after %s seconds" % time_out
+            return
 
     def whois(self):
         self.send({'cmd': 'whois'}, port=self.SERVER_PORT)
@@ -101,7 +117,7 @@ class XiaomiConnection(object):
         d_gateways={}
         l_gateways=[]
         try:
-            with timeout(10, exception=RuntimeError):
+            with timeout(time_out, exception=RuntimeError):
             # perform a potentially very slow operation
                 while n < 10:
                     data, addr = self.socket.recvfrom(self.SOCKET_BUFSIZE)
@@ -130,7 +146,7 @@ class XiaomiConnection(object):
                     #print conditions
 
         except RuntimeError:
-            if debug: print "Stopping after 10 seconds"
+            if debug: print "Stopping receiving gateways after %s seconds" % time_out
             pass
         return l_gateways
     
