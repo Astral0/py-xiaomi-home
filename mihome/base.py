@@ -10,7 +10,7 @@ import datetime
 import pprint
 import ast
 
-debug=False
+debug=True
 time_out=10   # seconds
 
 XIAOMI_PASSWORD = os.environ.get('XIAOMI_PASSWORD')
