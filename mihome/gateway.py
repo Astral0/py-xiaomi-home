@@ -86,19 +86,22 @@ class Gateway(BaseXiaomiDevice):
         if self.subdevices and not force:
             return self.subdevices
         self.subdevices = []
-        sids = json.loads(self.get_id_list()['data'])
-        for sid in sids:
-            self.connection.send(
-                {'cmd': 'read', 'sid': sid},
-                ip=self.ip
-            )
-            try:
-                device_status = self.connection.receive(cmd='read_ack')
-                device_status.pop('cmd')
-                device_status.pop('data')
-                self.subdevices.append(device_status)
-            except:
-                pass
+        try:
+            sids = json.loads(self.get_id_list()['data'])
+            for sid in sids:
+                self.connection.send(
+                    {'cmd': 'read', 'sid': sid},
+                    ip=self.ip
+                )
+                try:
+                    device_status = self.connection.receive(cmd='read_ack')
+                    device_status.pop('cmd')
+                    device_status.pop('data')
+                    self.subdevices.append(device_status)
+                except:
+                    pass
+        except:
+            pass
         return self.subdevices
 
     def register_subdevices(self):
