@@ -6,7 +6,10 @@ set_root() {
 }
 set_root $0
 
-export PYTHONPATH=${root}/..
+# if [ -f "${root}/../../config/devices.json" ]; then
+    # cat ${root}/../../config/devices.json
+# fi
 
+export PYTHONPATH=${root}/..
 cd ${root}/
 python2 ${root}/get_gateways.py

@@ -10,7 +10,8 @@ import datetime
 import pprint
 import ast
 
-debug=False
+debug=True
+
 XIAOMI_PASSWORD = os.environ.get('XIAOMI_PASSWORD')
 
 IV = bytearray([
@@ -114,9 +115,12 @@ class XiaomiConnection(object):
                         payload[key] == value
                          for key, value in [('cmd', 'iam')]
                     ]
-                    
+                    conditions3 = [
+                        payload[key] == value
+                         for key, value in [('model', 'gateway')]
+                    ]
 #                    if all(conditions) or all(conditions2):
-                    if all(conditions):
+                    if all(conditions) and all(conditions3):
                         if debug: print 'Received: %s' % payload
                         n+=1
                         sid=payload[u'sid']
