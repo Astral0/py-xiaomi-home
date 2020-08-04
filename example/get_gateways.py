@@ -15,8 +15,8 @@ old_gateways={}
 if os.path.isfile(devices_file):
     with open(devices_file) as json_file:
         data = json.load(json_file)
-old_gateways=data["gateways"]
-print old_gateways
+    old_gateways=data["gateways"]
+    if debug: print old_gateways
 
 
 conn = XiaomiConnection()
